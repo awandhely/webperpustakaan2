@@ -38,7 +38,8 @@ class BookController extends Controller
         'year' => 'required|numeric',
         'stock' => 'required|numeric',
         'category_id' => 'required|exists:categories,id',
-        'image' => 'nullable|image'
+        'image' => 'nullable|image',
+        'description' => 'nullable|string'
     ]);
 
     if ($request->hasFile('image')) {
@@ -67,7 +68,8 @@ class BookController extends Controller
         'year' => 'required|numeric',
         'stock' => 'required|numeric',
         'category_id' => 'required|exists:categories,id',
-        'image' => 'nullable|image'
+        'image' => 'nullable|image',
+        'description' => 'nullable|string'
     ]);
 
     if ($request->hasFile('image')) {

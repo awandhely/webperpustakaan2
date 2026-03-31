@@ -3,217 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Management User</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .main-content {
-            margin-left: 260px;
-            padding: 30px;
-        }
-        
-        .page-header {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .page-header h1 {
-            color: #2d3748;
-            font-size: 28px;
-        }
-        
-        .btn-add {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 25px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-add:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        .table-container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-        
-        table th:first-child {
-            border-top-left-radius: 8px;
-        }
-        
-        table th:last-child {
-            border-top-right-radius: 8px;
-        }
-        
-        table td {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-            color: #4a5568;
-        }
-        
-        table tr:hover {
-            background: #f7fafc;
-        }
-        
-        .badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .badge-admin {
-            background: #bee3f8;
-            color: #2c5282;
-        }
-        
-        .badge-petugas {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .badge-user {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn-edit {
-            background: #48bb78;
-            color: white;
-            padding: 8px 16px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .btn-edit:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-        }
-        
-        .btn-delete {
-            background: #f56565;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-delete:hover {
-            background: #e53e3e;
-            transform: translateY(-2px);
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            
-            .table-container {
-                padding: 15px;
-            }
-        }
-    </style>
+    <title>{{ $title }} - Admin</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ asset('css/simple-orange.css') }}">
 </head>
 <body>
 
 @include('admin.sidebar')
 
-<div class="main-content">
-    <div class="page-header">
-        <h1>👥 Management User</h1>
-        <a href="/admin/users/create" class="btn-add">+ Tambah User</a>
+<div class="main-container">
+    <div class="header">
+        <h2>{{ $title }}</h2>
+        <div class="actions" style="display:flex; gap:12px;">
+            @if($role != 'admin')
+            <a href="{{ route('admin.users.export', ['role' => $role]) }}" class="btn-add" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+            @endif
+
+            @if($role == 'petugas')
+            <a href="{{ route('admin.users.create', ['role' => $role]) }}" class="btn-add">
+                <i class="fas fa-plus"></i> Tambah {{ $role == 'petugas' ? 'Petugas' : ($role == 'user' ? 'Anggota' : ($role == 'admin' ? 'Admin' : 'Pengguna')) }}
+            </a>
+            @endif
+        </div>
     </div>
 
-    <div class="table-container">
+    @if(session('success'))
+        <div class="alert">{{ session('success') }}</div>
+    @endif
+
+    <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Nama</th>
-                    <th>Email</th>
+                    <th>Pengguna</th>
+                    <th>Alamat</th>
                     <th>Role</th>
+                    <th>Terdaftar</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($users as $user)
+                @foreach($users as $user)
                 <tr>
-                    <td><strong>{{ $user->name }}</strong></td>
-                    <td>{{ $user->email }}</td>
                     <td>
-                        <span class="badge badge-{{ $user->role }}">
-                            {{ $user->role }}
-                        </span>
+                        <div class="user-info">
+                            <div class="user-avatar">{{ substr($user->name, 0, 1) }}</div>
+                            <div>
+                                <div class="user-name">{{ $user->name }}</div>
+                                <div class="user-email">{{ $user->email }}</div>
+                            </div>
+                        </div>
                     </td>
+                    <td>{{ $user->alamat ?? '-' }}</td>
                     <td>
-                        <div class="action-buttons">
-                            <a href="/admin/users/{{ $user->id }}/edit" class="btn-edit">Edit</a>
-                            <form action="/admin/users/{{ $user->id }}" method="POST" style="display:inline">
+                        <span class="role-badge role-{{ $user->role }}">{{ ucfirst($user->role) }}</span>
+                    </td>
+                    <td>{{ $user->created_at->format('d M Y') }}</td>
+                    <td>
+                        <div class="actions">
+                            @if($role != 'user')
+                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-edit">Edit</a>
+                            @endif
+
+                            @if($role != 'admin' && $user->id !== auth()->id())
+                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus pengguna ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-delete" onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</button>
+                                <button type="submit" class="btn btn-delete">Hapus</button>
                             </form>
+                            @endif
                         </div>
                     </td>
                 </tr>

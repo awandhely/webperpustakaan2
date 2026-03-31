@@ -1,60 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Kategori Buku</title>
-    <style>
-        body { margin:0; font-family:sans-serif; background:#f4f6f8; }
-        .content { margin-left:260px; padding:30px; }
-        .card { background:#fff; padding:20px; border-radius:12px; }
-        table { width:100%; border-collapse:collapse; margin-top:15px; }
-        th,td { padding:12px; border-bottom:1px solid #eee; }
-        a, button { padding:8px 12px; border-radius:6px; text-decoration:none; border:none; cursor:pointer; }
-        .btn { background:#111827; color:#fff; }
-        .btn-danger { background:#dc2626; color:#fff; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kategori Buku - Admin</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ asset('css/simple-orange.css') }}">
 </head>
 <body>
 
 @include('admin.sidebar')
 
-<div class="content">
-    <h2>📚 Kategori Buku</h2>
+<div class="main-container">
+    <div class="header">
+        <h2>Kategori Buku</h2>
+        <a href="{{ route('admin.categories.create') }}" class="btn-add">
+            <i class="fas fa-plus"></i> Tambah Kategori
+        </a>
+    </div>
 
     @if(session('success'))
-        <p style="color:green">{{ session('success') }}</p>
+        <div class="alert">{{ session('success') }}</div>
     @endif
 
-    <a href="{{ route('admin.categories.create') }}" class="btn">➕ Tambah Kategori</a>
-
-    <div class="card">
+    <div class="table-wrapper">
+        @if($categories->count() > 0)
         <table>
-            <tr>
-                <th>#</th>
-                <th>Nama</th>
-                <th>Aksi</th>
-            </tr>
-
-            @foreach($categories as $cat)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $cat->name }}</td>
-                <td>
-                    <a href="{{ route('admin.categories.edit', $cat->id) }}" class="btn">✏️ Edit</a>
-
-                    <form method="POST"
-                          action="{{ route('admin.categories.destroy', $cat->id) }}"
-                          style="display:inline">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn-danger"
-                                onclick="return confirm('Hapus kategori?')">
-                            🗑️
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Kategori</th>
+                    <th>Jumlah Buku</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($categories as $index => $category)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td style="font-weight:600;color:#1f2937;">{{ $category->name }}</td>
+                    <td>{{ $category->books_count ?? $category->books->count() }} buku</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-edit">Edit</a>
+                            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Hapus kategori ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-delete">Hapus</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
         </table>
+        @else
+        <div class="empty-state">
+            <i class="fas fa-tags" style="font-size:48px;color:#d1d5db;margin-bottom:16px;"></i>
+            <p>Belum ada kategori</p>
+        </div>
+        @endif
     </div>
 </div>
 

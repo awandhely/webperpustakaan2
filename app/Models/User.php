@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role', // 🔽 tambahan role
+        'alamat', // 🔽 tambahan alamat
     ];
 
     /**
@@ -45,5 +46,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function borrowings()
+    {
+        return $this->hasMany(Borrowing::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(BookRating::class);
+    }
+
+    public function collections()
+    {
+        return $this->belongsToMany(Book::class, 'book_collections');
     }
 }

@@ -1,47 +1,81 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | E-Pusda</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ asset('css/simple-orange.css') }}">
+</head>
+<body>
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-book-reader"></i>
+                </div>
+                <h1>Selamat Datang</h1>
+                <p>Masuk ke dashboard E-Pusda Anda</p>
+            </div>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
+            @if(session('status'))
+                <div class="alert-success">{{ session('status') }}</div>
             @endif
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                <div class="form-group">
+                    <label for="email">Alamat Email</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="nama@email.com" value="{{ old('email') }}" required autofocus>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    @error('email')
+                        <div class="error-msg">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    @error('password')
+                        <div class="error-msg">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="auth-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember">
+                        <span>Ingat Saya</span>
+                    </label>
+                    @if (Route::has('password.request'))
+                        <a href="{{ route('password.request') }}" class="forgot-pw">Lupa Password?</a>
+                    @endif
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Masuk Sekarang <i class="fas fa-sign-in-alt ml-2" style="margin-left: 8px;"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Belum punya akun? <a href="{{ route('register') }}">Daftar Gratis</a>
+            </div>
         </div>
-    </form>
-</x-guest-layout>
+
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

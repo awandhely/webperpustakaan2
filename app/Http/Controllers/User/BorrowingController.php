@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Borrowing;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BorrowingController extends Controller
 {
@@ -44,9 +45,11 @@ class BorrowingController extends Controller
             'user_id' => Auth::id(),
             'book_id' => $book->id,
             'status' => 'menunggu',
+            'borrow_date' => request('borrow_date', now()->toDateString()),
+            'return_date' => request('return_date', now()->addDays(7)->toDateString()),
         ]);
 
-        return back()->with('success', 'Permintaan peminjaman berhasil dikirim');
+        return back()->with('success', 'Permintaan peminjaman berhasil dikirim! Silakan tunggu konfirmasi dari petugas.');
     }
 
     public function create(Book $book)
@@ -61,5 +64,41 @@ class BorrowingController extends Controller
     {
         $book->load('category');
         return view('user.books.show', compact('book'));
+    }
+
+    /**
+     * HISTORY PEMINJAMAN (USER)
+     */
+    public function history()
+    {
+        $query = Borrowing::with('book')
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc');
+
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+
+        $borrowings = $query->get();
+
+        return view('user.borrowings.history', compact('borrowings'));
+    }
+
+    /**
+     * DOWNLOAD BUKTI PEMINJAMAN (PDF)
+     */
+    public function downloadReceipt(Borrowing $borrowing)
+    {
+        // Pastikan peminjaman milik user yang login
+        if ($borrowing->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $borrowing->load(['user', 'book.category']);
+
+        $pdf = Pdf::loadView('user.borrowings.receipt', compact('borrowing'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download('bukti-peminjaman-' . $borrowing->id . '.pdf');
     }
 }

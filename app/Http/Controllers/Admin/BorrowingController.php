@@ -30,10 +30,9 @@ class BorrowingController extends Controller
             return back()->with('error', 'Stok buku habis');
         }
 
-        // Update status peminjaman
+        // Update status peminjaman (borrow_date sudah diisi user dari form)
         $borrowing->update([
             'status' => 'dipinjam',
-            'borrow_date' => now(),
         ]);
 
         // Kurangi stok buku
@@ -54,23 +53,25 @@ class BorrowingController extends Controller
         return back()->with('success', 'Peminjaman ditolak');
     }
 
+    /**
+     * Selesaikan pengembalian buku
+     */
     public function returnBook(Borrowing $borrowing)
-{
-    // Cegah double return
-    if ($borrowing->status !== 'dipinjam') {
-        return back()->with('error', 'Buku belum dipinjam atau sudah dikembalikan');
+    {
+        // Cegah jika status bukan dipinjam
+        if ($borrowing->status !== 'dipinjam') {
+            return back()->with('error', 'Buku belum dipinjam atau sudah dikembalikan.');
+        }
+
+        // Update status peminjaman
+        $borrowing->update([
+            'status' => 'dikembalikan',
+            'return_date' => now(),
+        ]);
+
+        // Tambah stok buku
+        $borrowing->book->increment('stock');
+
+        return back()->with('success', 'Buku "' . $borrowing->book->title . '" berhasil dikembalikan!');
     }
-
-    // Update status peminjaman
-    $borrowing->update([
-        'status' => 'dikembalikan',
-        'return_date' => now(),
-    ]);
-
-    // Tambah stok buku
-    $borrowing->book->increment('stock');
-
-    return back()->with('success', 'Buku berhasil dikembalikan');
-}
-
 }

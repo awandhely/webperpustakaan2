@@ -13,7 +13,8 @@ class Book extends Model
         'year',
         'stock',
         'image', // 🔥 wajib
-        'category_id'
+        'category_id',
+        'description'
     ];
 
     public function category()
@@ -21,4 +22,13 @@ class Book extends Model
     return $this->belongsTo(\App\Models\Category::class);
 }
 
+    public function ratings()
+    {
+        return $this->hasMany(BookRating::class);
+    }
+
+    public function collectedBy()
+    {
+        return $this->belongsToMany(User::class, 'book_collections');
+    }
 }

@@ -6,20 +6,40 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserManagementController extends Controller
 {
-    // TAMPIL SEMUA USER
-    public function index()
+    // EXPORT EXCEL
+    public function export(Request $request)
     {
-        $users = User::all();
-        return view('admin.users.index', compact('users'));
+        $role = $request->query('role');
+        $fileName = 'users';
+        if ($role) {
+            $fileName .= '_' . $role;
+        }
+        $fileName .= '_' . date('Y-m-d') . '.xlsx';
+
+        return Excel::download(new UsersExport($role), $fileName);
+    }
+
+    // TAMPIL SEMUA USER
+    public function index(Request $request)
+    {
+        $role = $request->query('role') ?? 'admin';
+        $users = User::where('role', $role)->get();
+        
+        $title = $role == 'petugas' ? 'Data Petugas' : ($role == 'user' ? 'Data Anggota' : 'Data Admin');
+        
+        return view('admin.users.index', compact('users', 'title', 'role'));
     }
 
     // FORM TAMBAH USER
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.users.create');
+        $role = $request->query('role');
+        return view('admin.users.create', compact('role'));
     }
 
     // SIMPAN USER BARU
@@ -29,17 +49,18 @@ class UserManagementController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'role' => 'required'
+            'alamat' => 'required',
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => $request->role ?? 'petugas', 
+            'alamat' => $request->alamat,
         ]);
 
-        return redirect('/admin/users')->with('success', 'User berhasil ditambahkan');
+        return redirect()->route('admin.users.index', ['role' => $request->role ?? 'petugas'])->with('success', 'User berhasil ditambahkan');
     }
 
     // FORM EDIT USER
@@ -54,13 +75,15 @@ class UserManagementController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email',
-            'role' => 'required'
+            'role' => 'required',
+            'alamat' => 'required'
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'alamat' => $request->alamat,
         ];
 
         if ($request->password) {
@@ -69,7 +92,7 @@ class UserManagementController extends Controller
 
         $user->update($data);
 
-        return redirect('/admin/users')->with('success', 'User berhasil diupdate');
+        return redirect()->route('admin.users.index', ['role' => $user->role])->with('success', 'User berhasil diupdate');
     }
 
     // HAPUS USER

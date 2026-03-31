@@ -2,213 +2,79 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Daftar Buku</title>
-
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-        }
-
-        .container {
-            margin-left: 260px;
-            padding: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.05);
-            margin-bottom: 20px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        img {
-            width: 120px;
-            height: 160px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-        }
-
-        /* MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.4);
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-box {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            width: 380px;
-            max-width: 90%;
-        }
-
-        .modal-box h3 {
-            margin-top: 0;
-        }
-
-        label {
-            display: block;
-            margin: 12px 0 6px;
-            font-weight: 500;
-            font-size: 0.95em;
-        }
-
-        input[type="date"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1em;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        small {
-            color: #6b7280;
-            font-size: 0.85em;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Buku - Perpustakaan</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ asset('css/simple-orange.css') }}">
 </head>
-
 <body>
 
-@include('user.sidebar')
+@include('user.navbar')
 
-<div class="container">
-    <h2>📚 Daftar Buku</h2>
+<div class="main-container">
+    <div class="header">
+        <h2>Daftar Buku</h2>
+        <p>Temukan dan pinjam buku yang Anda inginkan</p>
+    </div>
 
     @if(session('success'))
-        <p style="color:green; font-weight:500;">{{ session('success') }}</p>
+        <div class="alert">{{ session('success') }}</div>
     @endif
 
-    @if(session('error'))
-        <p style="color:red; font-weight:500;">{{ session('error') }}</p>
-    @endif
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Cari judul buku atau penulis..." onkeyup="filterBooks()">
+    </div>
 
-    @foreach($books as $book)
-        <div class="card">
-            <img src="{{ $book->image ? asset('storage/'.$book->image) : 'https://via.placeholder.com/120x160' }}">
-
-            <div style="flex:1;">
-                <h3 style="margin:0 0 6px;">{{ $book->title }}</h3>
-                <p style="margin:4px 0; color:#4b5563;">✍ {{ $book->author }}</p>
-                <p style="margin:4px 0; font-weight:500;">📦 Stok: {{ $book->stock }}</p>
-
-                <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
-                    <a href="{{ route('user.books.show', $book) }}" class="btn" style="background:#6366f1;">
-                        📖 Lihat Detail
-                    </a>
-                    @if($book->stock > 0)
-                        <button class="btn"
-                            onclick="openModal({{ $book->id }}, '{{ addslashes($book->title) }}', '{{ addslashes($book->author) }}')">
-                            📥 Pinjam Buku
-                        </button>
-                    @else
-                        <button class="btn" disabled>Stok Habis</button>
-                    @endif
+    @if($books->count() > 0)
+    <div class="books-grid" id="booksGrid">
+        @foreach($books as $book)
+        <div class="book-card" data-title="{{ strtolower($book->title) }}" data-author="{{ strtolower($book->author) }}">
+            <div class="book-cover">
+                @if($book->image)
+                    <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}">
+                @else
+                    <i class="fas fa-book"></i>
+                @endif
+            </div>
+            <div class="book-info">
+                <span class="book-category">{{ $book->category->name ?? 'Umum' }}</span>
+                <h3 class="book-title">{{ $book->title }}</h3>
+                <p class="book-author">{{ $book->author }}</p>
+                <div class="book-meta">
+                    <span class="stock-badge {{ $book->stock > 0 ? 'stock-available' : 'stock-empty' }}">
+                        {{ $book->stock > 0 ? 'Tersedia: ' . $book->stock : 'Habis' }}
+                    </span>
+                    <a href="{{ route('user.books.show', $book) }}" class="btn-detail">Detail</a>
                 </div>
             </div>
         </div>
-    @endforeach
-</div>
-
-<!-- MODAL -->
-<div class="modal" id="borrowModal">
-    <div class="modal-box">
-        <h3>📥 Konfirmasi Peminjaman</h3>
-
-        <p><strong>Judul:</strong> <span id="modalTitle"></span></p>
-        <p><strong>Penulis:</strong> <span id="modalAuthor"></span></p>
-
-        <form method="POST" id="borrowForm">
-            @csrf
-
-            <label>Jumlah yang dipinjam</label>
-            <input type="number" name="quantity" min="1" value="1" required>
-
-            <label>Tanggal Pengembalian</label>
-            <input type="date" name="due_date" required 
-                   value="{{ date('Y-m-d', strtotime('+7 days')) }}">
-
-            <label>Catatan (opsional)</label>
-            <textarea name="notes" rows="3" placeholder="Contoh: untuk tugas akhir, ujian, atau baca santai..."></textarea>
-
-            <button type="submit" class="btn" style="width:100%; margin:20px 0 10px;">
-                Ajukan Peminjaman
-            </button>
-
-            <button type="button" class="btn btn-secondary" style="width:100%;"
-                onclick="closeModal()">Batal</button>
-        </form>
+        @endforeach
     </div>
+    @else
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <p>Belum ada buku tersedia</p>
+    </div>
+    @endif
 </div>
 
 <script>
-function openModal(id, title, author) {
-    document.getElementById('modalTitle').innerText = title;
-    document.getElementById('modalAuthor').innerText = author;
+function filterBooks() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.book-card');
     
-    // Set action URL
-    document.getElementById('borrowForm').action = `/user/books/${id}/borrow`;
-    
-    // Reset form fields jika diperlukan
-    document.getElementById('borrowForm').reset();
-    
-    // Set default quantity dan tanggal
-    document.querySelector('input[name="quantity"]').value = 1;
-    document.querySelector('input[name="due_date"]').value = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0];
-    
-    document.getElementById('borrowModal').classList.add('active');
+    cards.forEach(card => {
+        const title = card.dataset.title;
+        const author = card.dataset.author;
+        if (title.includes(query) || author.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
 }
-
-function closeModal() {
-    document.getElementById('borrowModal').classList.remove('active');
-}
-
-// Optional: tutup modal jika klik di luar box
-document.getElementById('borrowModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeModal();
-    }
-});
 </script>
 
 </body>
